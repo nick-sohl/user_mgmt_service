@@ -1,0 +1,32 @@
+# Secrets
+.env
+!.env.example
+
+# Gradle
+.gradle/
+build/
+
+# Eclipse
+.classpath
+.project
+.settings/
+.factorypath
+bin/
+
+# IntelliJ
+.idea/
+*.iml
+
+# VCS / docs
+.git/
+.gitignore
+.gitattributes
+README.md
+LICENSE
+
+# Docker artifacts: the Dockerfile is read separately by the daemon,
+# no need to ship the docker/ dir as part of the build context
+docker/
+
+# OS
+.DS_Store

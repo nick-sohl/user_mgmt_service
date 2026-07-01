@@ -1,0 +1,52 @@
+name: user-mgmt-service
+
+services:
+  db:
+    # pin version -> if postgres ships new version
+    # and we don't pin it, newer version could break our setup
+    # without pinning the version, we would always use the latest version
+    image: postgres:16-alpine
+    restart: unless-stopped
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: ${SPRING_DATASOURCE_USERNAME}
+      POSTGRES_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+    # depends_on alone only waits for the container to start, not for postgres to accept connections
+    # without this healthcheck the app can race the db on first boot
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${SPRING_DATASOURCE_USERNAME}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  app:
+    build:
+      context: ../
+      dockerfile: docker/Dockerfile
+    restart: unless-stopped
+    ports: 
+      - 9000:9000
+    env_file: .env
+    depends_on:
+      db:
+        condition: service_healthy
+
+  traefik:
+    image: traefik:v3.7
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+volumes:
+  pgdata:
+
+networks:
+  user-mgmt-network:
+    driver: bridge

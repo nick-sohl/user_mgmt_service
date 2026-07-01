@@ -1,0 +1,21 @@
+# Secrets
+.env
+!.env.example
+
+# Gradle
+.gradle/
+build/
+
+# Eclipse
+.classpath
+.project
+.settings/
+.factorypath
+bin/
+
+# IntelliJ
+.idea/
+*.iml
+
+# OS
+.DS_Store
