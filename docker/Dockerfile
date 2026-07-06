@@ -11,6 +11,7 @@ COPY settings.gradle .
 
 # gradlew checks our build.gradle file and searches for our dependencies and downloads them
 # We don't want running background processes in our docker container -> --no-daemon
+RUN chmod +x ./gradlew
 RUN ./gradlew dependencies --no-daemon
 
 # In the next step we copy the source code of the Java app
