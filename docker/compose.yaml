@@ -19,6 +19,8 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
+    networks:
+      - user-mgmt-network
 
   app:
     build:
@@ -31,18 +33,22 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    networks:
+      - user-mgmt-network
 
   traefik:
     image: traefik:v3.7
     command:
-      - "--api.insecure=true"
-      - "--providers.docker=true"
+      - "--api.insecure=true" # activate Web-Dashboard without password protection for development
+      - "--providers.docker=true" # use docker for configuration source
       - "--entrypoints.web.address=:80"
     ports:
       - "80:80"
       - "8080:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - user-mgmt-network
 
 volumes:
   pgdata:
