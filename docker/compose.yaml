@@ -1,7 +1,7 @@
 name: user-mgmt-service
 
 services:
-  db:
+  postgres:
     # pin version -> if postgres ships new version
     # and we don't pin it, newer version could break our setup
     # without pinning the version, we would always use the latest version
@@ -27,14 +27,26 @@ services:
       context: ../
       dockerfile: docker/Dockerfile
     restart: unless-stopped
-    ports: 
-      - 9000:9000
     env_file: .env
     depends_on:
-      db:
+      postgres:
         condition: service_healthy
     networks:
       - user-mgmt-network
+    labels:
+      - "traefik.enable=true"
+      # Listen to requests to /api
+      - "traefik.http.routers.app.rule=PathPrefix(`/api`)"
+      # Define port 443
+      - "traefik.http.routers.app.entrypoints=websecure"
+      # Active TLS
+      - "traefik.http.routers.app.tls=true"
+      # Strip/remove /api prefix
+      - "traefik.http.middlewares.app-strip-api.stripprefix.prefixes=/api"
+      # Define removal middleware from above
+      - "traefik.http.routers.app.middlewares=app-strip-api@docker"
+      # Define internal port redirection
+      - "traefik.http.services.app.loadbalancer.server.port=8080"
 
   traefik:
     image: traefik:v3.7
