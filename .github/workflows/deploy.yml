@@ -1,0 +1,31 @@
+name: deploy to DigitalOcean Droplet
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd ~/user_mgmt_service
+            git pull origin main
+            cd docker
+            cat > .env << EOF
+            SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/postgres
+            SPRING_DATASOURCE_USERNAME=postgres
+            SPRING_DATASOURCE_PASSWORD=${{ secrets.SPRING_DATASOURCE_PASSWORD }}
+            SPRING_JPA_HIBERNATE_DDL_AUTO=update
+            JWT_ISSUER=Spring
+            JWT_SECRET=${{ secrets.JWT_SECRET }}
+            JWT_EXPIRATION_MILLIS=86400000
+            LETSENCRYPT_EMAIL=${{ secrets.LETSENCRYPT_EMAIL }}
+            EOF
+            docker compose up -d --build
