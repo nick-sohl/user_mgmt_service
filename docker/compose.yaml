@@ -35,12 +35,14 @@ services:
       - user-mgmt-network
     labels:
       - "traefik.enable=true"
-      # Listen to requests to /api
-      - "traefik.http.routers.app.rule=PathPrefix(`/api`)"
+      # Listen to requests to duckdns domain and /api
+      - "traefik.http.routers.app.rule=Host(`user-mgmt-service.duckdns.org`) && PathPrefix(`/api`)"
       # Define port 443
       - "traefik.http.routers.app.entrypoints=websecure"
       # Active TLS
       - "traefik.http.routers.app.tls=true"
+      # Configure LetsEncrypt as certresolver
+      - "traefik.http.routers.app.tls.certresolver=letsencrypt"
       # Strip/remove /api prefix
       - "traefik.http.middlewares.app-strip-api.stripprefix.prefixes=/api"
       # Define removal middleware from above
@@ -72,7 +74,13 @@ services:
       - "--entrypoints.websecure.http.tls=true"
 
       # Attach the static configuration tls.yaml file that contains the tls configuration settings
-      - "--providers.file.filename=/dynamic/tls.yaml"
+      # - "--providers.file.filename=/dynamic/tls.yaml" # testing
+      
+      # ACME (Let's Encrypt) certificate resolver
+      - "--certificatesresolvers.letsencrypt.acme.email=stefan.furrer@edu.teko.ch"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
 
       # Providers 
       - "--providers.docker=true"
@@ -107,6 +115,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./certs:/certs:ro
       - ./dynamic:/dynamic:ro
+      - ./letsencrypt:/letsencrypt
 
   # Whoami application
   whoami:
