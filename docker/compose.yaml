@@ -43,12 +43,36 @@ services:
       - "traefik.http.routers.app.tls=true"
       # Configure LetsEncrypt as certresolver
       - "traefik.http.routers.app.tls.certresolver=letsencrypt"
+      # Higher priority than frontend (requests will first be checked with backend rule)
+      - "traefik.http.routers.app.priority=10"
       # Strip/remove /api prefix
       - "traefik.http.middlewares.app-strip-api.stripprefix.prefixes=/api"
       # Define removal middleware from above
       - "traefik.http.routers.app.middlewares=app-strip-api@docker"
-      # Define internal port redirection
+      # Listen to port 8080
       - "traefik.http.services.app.loadbalancer.server.port=8080"
+
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: https://user-mgmt-service.duckdns.org/api
+    restart: unless-stopped
+    networks:
+      - user-mgmt-network
+    labels:
+      # Enable self‑routing
+      - "traefik.enable=true"
+      # No PathPrefix, reacts to all requests to the given domain
+      - "traefik.http.routers.frontend.rule=Host(`user-mgmt-service.duckdns.org`)"
+      - "traefik.http.routers.frontend.entrypoints=websecure"
+      - "traefik.http.routers.frontend.tls=true"
+      - "traefik.http.routers.frontend.tls.certresolver=letsencrypt"
+      # Define lowest priority
+      - "traefik.http.routers.frontend.priority=1"
+      # Listen to port 3000
+      - "traefik.http.services.frontend.loadbalancer.server.port=3000"
 
   traefik:
     image: traefik:v3.7
