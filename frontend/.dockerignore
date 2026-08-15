@@ -1,0 +1,17 @@
+# Secrets
+.env
+!.env.example
+
+# Dependencies
+node_modules
+
+# Build output
+.next
+out
+
+# VCS / docs
+.git/
+.gitignore
+.gitattributes
+README.md
+LICENSE
