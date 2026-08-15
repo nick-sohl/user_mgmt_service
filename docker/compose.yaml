@@ -77,7 +77,7 @@ services:
       # - "--providers.file.filename=/dynamic/tls.yaml" # testing
       
       # ACME (Let's Encrypt) certificate resolver
-      - "--certificatesresolvers.letsencrypt.acme.email=stefan.furrer@edu.teko.ch"
+      - "--certificatesresolvers.letsencrypt.acme.email=${LETSENCRYPT_EMAIL}"
       - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
       - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
       - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
