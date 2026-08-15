@@ -35,8 +35,8 @@ services:
       - user-mgmt-network
     labels:
       - "traefik.enable=true"
-      # Listen to requests to duckdns domain and /api
-      - "traefik.http.routers.app.rule=Host(`user-mgmt-service.duckdns.org`) && PathPrefix(`/api`)"
+      # Listen to requests to duckdns domain and /backend
+      - "traefik.http.routers.app.rule=Host(`user-mgmt-service.duckdns.org`) && PathPrefix(`/backend`)"
       # Define port 443
       - "traefik.http.routers.app.entrypoints=websecure"
       # Active TLS
@@ -45,8 +45,8 @@ services:
       - "traefik.http.routers.app.tls.certresolver=letsencrypt"
       # Higher priority than frontend (requests will first be checked with backend rule)
       - "traefik.http.routers.app.priority=10"
-      # Strip/remove /api prefix
-      - "traefik.http.middlewares.app-strip-api.stripprefix.prefixes=/api"
+      # Strip/remove /backend prefix
+      - "traefik.http.middlewares.app-strip-api.stripprefix.prefixes=/backend"
       # Define removal middleware from above
       - "traefik.http.routers.app.middlewares=app-strip-api@docker"
       # Listen to port 8080
@@ -57,7 +57,7 @@ services:
       context: ../frontend
       dockerfile: Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: https://user-mgmt-service.duckdns.org/api
+        NEXT_PUBLIC_API_URL: https://user-mgmt-service.duckdns.org/backend
     restart: unless-stopped
     networks:
       - user-mgmt-network
