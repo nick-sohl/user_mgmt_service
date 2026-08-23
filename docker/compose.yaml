@@ -23,6 +23,7 @@ services:
       - user-mgmt-network
 
   app:
+    image: nicksohl/user-management-service:${TAG:-latest}
     build:
       context: ../
       dockerfile: docker/Dockerfile
@@ -53,6 +54,7 @@ services:
       - "traefik.http.services.app.loadbalancer.server.port=8080"
 
   frontend:
+    image: nicksohl/user-management-frontend:${TAG:-latest}
     build:
       context: ../frontend
       dockerfile: Dockerfile
