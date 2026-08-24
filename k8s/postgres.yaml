@@ -35,7 +35,8 @@ spec:
 ---
 apiVersion: v1
 kind: Service
-metadata:
+type: ClusterIP
+meadata:
   name: postgres-service
 spec:
   selector:
