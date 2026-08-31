@@ -68,10 +68,10 @@ spec:
 ---
 apiVersion: v1
 kind: Service
-type: ClusterIP
 metadata:
   name: backend-service
 spec:
+  type: ClusterIP
   selector:
     app: backend
   ports:

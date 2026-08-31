@@ -1,5 +1,5 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: postgres-deployment
   labels:
@@ -7,6 +7,7 @@ metadata:
 spec:
   # to keep things simple, we use only one replica
   # to use multiple databases in kubernetes, we should use a statefulset
+  serviceName: postgres-service
   replicas: 1
   selector:
     matchLabels:
@@ -19,6 +20,9 @@ spec:
       containers:
       - name: postgres
         image: postgres:16-alpine
+        volumeMounts:
+        - mountPath: "/var/lib/postgresql/data"
+          name: postgres-volume
         ports:
         - containerPort: 5432
         env:
@@ -32,13 +36,21 @@ spec:
             secretKeyRef:
               name: postgres-secret
               key: postgres-password
+  volumeClaimTemplates:
+    - metadata:
+        name: postgres-volume
+      spec:
+        accessModes: ["ReadWriteOncePod"]
+        resources:
+          requests:
+            storage: 5Gi
 ---
 apiVersion: v1
 kind: Service
-type: ClusterIP
-meadata:
+metadata:
   name: postgres-service
 spec:
+  type: ClusterIP
   selector:
     app: postgres
   ports:

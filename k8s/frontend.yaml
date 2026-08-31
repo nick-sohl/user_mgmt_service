@@ -33,10 +33,10 @@ spec:
 ---
 apiVersion: v1
 kind: Service
-type: ClusterIP
 metadata:
   name: frontend-service
 spec:
+  type: ClusterIP
   selector:
     app: frontend
   ports:
