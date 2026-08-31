@@ -6,4 +6,4 @@ data:
   backend-url: backend-service
   spring-jpa-hibernate-ddl-auto: create
   jwt-issuer: Spring
-  jwt-expiration-millis: 86400000
+  jwt-expiration-millis: "86400000"
