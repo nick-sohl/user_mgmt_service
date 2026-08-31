@@ -5,4 +5,4 @@ metadata:
   name: frontend-config
 data:
   frontend-url: frontend-service
-  next-public-api-url: https://user-mgmt-service.duckdns.org/backend
+  next-public-api-url: http://backend-service:3000
