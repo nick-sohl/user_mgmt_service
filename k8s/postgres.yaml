@@ -36,6 +36,8 @@ spec:
             secretKeyRef:
               name: postgres-secret
               key: postgres-password
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata
   volumeClaimTemplates:
     - metadata:
         name: postgres-volume
