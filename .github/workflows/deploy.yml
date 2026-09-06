@@ -1,31 +1,57 @@
-name: deploy to DigitalOcean Droplet
+name: build and promote
 
 on:
   push:
     branches: [main]
 
 jobs:
-  deploy:
+  build-and-promote:
     runs-on: ubuntu-latest
     steps:
-      - name: deploy via SSH
-        uses: appleboy/ssh-action@v1.0.3
+      - uses: actions/checkout@v4
+
+      - id: tag
+        run: echo "value=sha-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
         with:
-          host: ${{ secrets.SERVER_IP }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            cd ~/user_mgmt_service
-            git pull origin main
-            cd docker
-            cat > .env << EOF
-            SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/postgres
-            SPRING_DATASOURCE_USERNAME=postgres
-            SPRING_DATASOURCE_PASSWORD=${{ secrets.SPRING_DATASOURCE_PASSWORD }}
-            SPRING_JPA_HIBERNATE_DDL_AUTO=update
-            JWT_ISSUER=Spring
-            JWT_SECRET=${{ secrets.JWT_SECRET }}
-            JWT_EXPIRATION_MILLIS=86400000
-            LETSENCRYPT_EMAIL=${{ secrets.LETSENCRYPT_EMAIL }}
-            EOF
-            docker compose up -d --build
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: build and push backend
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/Dockerfile
+          push: true
+          tags: nicksohl/user-management-service:${{ steps.tag.outputs.value }}
+
+      - name: build and push frontend
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend
+          push: true
+          build-args: NEXT_PUBLIC_API_URL=https://user-mgmt-service.duckdns.org/backend
+          tags: nicksohl/user-management-frontend:${{ steps.tag.outputs.value }}
+
+      - name: checkout ops repo
+        uses: actions/checkout@v4
+        with:
+          repository: nick-sohl/user-mgmt-ops
+          token: ${{ secrets.OPS_REPO_TOKEN }}
+          path: ops
+
+      - name: promote tags in values.yaml
+        working-directory: ops
+        env:
+          TAG: ${{ steps.tag.outputs.value }}
+        run: |
+          sudo curl -sL https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -o /usr/local/bin/yq
+          sudo chmod +x /usr/local/bin/yq
+          yq -i ".backend.image.tag = \"$TAG\" | .frontend.image.tag = \"$TAG\"" helm/user-mgmt/values.yaml
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions@github.com"
+          git commit -am "promote: $TAG"
+          git push
