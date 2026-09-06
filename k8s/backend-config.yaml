@@ -1,9 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: backend-config
-data:
-  backend-url: backend-service
-  spring-jpa-hibernate-ddl-auto: update
-  jwt-issuer: Spring
-  jwt-expiration-millis: "86400000"

@@ -1,0 +1,16 @@
+{{ .Chart.Name }} {{ .Chart.AppVersion }} installed as release "{{ .Release.Name }}" in namespace "{{ .Release.Namespace }}".
+
+Components:
+  - backend    : {{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }} ({{ .Values.backend.replicaCount }} replicas, port {{ .Values.backend.service.port }})
+  - frontend   : {{ .Values.frontend.image.repository }}:{{ .Values.frontend.image.tag }} ({{ .Values.frontend.replicaCount }} replicas, port {{ .Values.frontend.service.port }})
+  - postgres   : {{ .Values.postgres.image.repository }}:{{ .Values.postgres.image.tag }} (StatefulSet, {{ .Values.postgres.storage.size }} PVC)
+
+{{ if .Values.ingress.enabled -}}
+Ingress:
+  https://{{ .Values.ingress.host }}/           -> frontend
+  https://{{ .Values.ingress.host }}{{ .Values.ingress.backendPath }}/*  -> backend
+{{- end }}
+
+Check rollout:
+  kubectl -n {{ .Release.Namespace }} get pods -l app.kubernetes.io/instance={{ .Release.Name }}
+  kubectl -n {{ .Release.Namespace }} get ingress

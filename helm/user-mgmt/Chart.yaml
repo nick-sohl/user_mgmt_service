@@ -1,0 +1,6 @@
+apiVersion: v2
+name: user-mgmt
+description: Helm chart for the User Management Service (Next.js frontend, Spring Boot backend, PostgreSQL)
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

@@ -1,8 +1,0 @@
-
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: frontend-config
-data:
-  frontend-url: frontend-service
-  next-public-api-url: http://backend-service:3000

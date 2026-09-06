@@ -1,0 +1,80 @@
+nameOverride: ""
+fullnameOverride: ""
+
+backend:
+  image:
+    repository: nicksohl/user-management-service
+    tag: v0.1.0
+    pullPolicy: IfNotPresent
+  replicaCount: 3
+  service:
+    port: 8080
+  config:
+    springJpaHibernateDdlAuto: update
+    jwtIssuer: Spring
+    jwtExpirationMillis: "86400000"
+  secrets:
+    jwtSecret: "d0lEQVFBQkFrQXpHbEZBUkZhdTdLMGI5RmNFd0lEQVFBQkFrQXpHbEZBUkZhdTdLMGI5RmNFd0lEQVFBQkFrQXpHbEZBUkZhdTdLMGI5RmNF"
+    letsencryptEmail: "stefan.furrer@edu.teko.ch"
+  probes:
+    enabled: true
+    readiness:
+      initialDelaySeconds: 20
+      periodSeconds: 5
+    liveness:
+      initialDelaySeconds: 90
+      periodSeconds: 20
+  resources: {}
+
+frontend:
+  image:
+    repository: nicksohl/user-management-frontend
+    tag: v0.1.0
+    pullPolicy: IfNotPresent
+  replicaCount: 3
+  service:
+    port: 3000
+  config:
+    nextPublicApiUrl: https://user-mgmt-service.duckdns.org/backend
+  probes:
+    enabled: true
+    readiness:
+      initialDelaySeconds: 5
+      periodSeconds: 5
+    liveness:
+      initialDelaySeconds: 30
+      periodSeconds: 20
+  resources: {}
+
+postgres:
+  image:
+    repository: postgres
+    tag: 16-alpine
+    pullPolicy: IfNotPresent
+  service:
+    port: 5432
+  db:
+    name: postgres
+  secrets:
+    user: "postgres"
+    password: "postgres"
+  storage:
+    size: 5Gi
+    accessMode: ReadWriteOncePod
+    pgDataSubPath: pgdata
+
+ingress:
+  enabled: true
+  className: nginx
+  host: user-mgmt-service.duckdns.org
+  backendPath: /backend
+  tls:
+    enabled: true
+    secretName: user-mgmt-tls
+
+certManager:
+  clusterIssuer:
+    enabled: true
+    name: letsencrypt-prod
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: stefan.furrer@edu.teko.ch

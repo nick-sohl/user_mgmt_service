@@ -1,0 +1,63 @@
+{{- if .Values.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "user-mgmt.backend.name" . }}
+  labels:
+    {{- include "user-mgmt.backend.labels" . | nindent 4 }}
+  annotations:
+    {{- if .Values.certManager.clusterIssuer.enabled }}
+    cert-manager.io/cluster-issuer: {{ .Values.certManager.clusterIssuer.name | quote }}
+    {{- end }}
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  {{- if .Values.ingress.tls.enabled }}
+  tls:
+    - hosts:
+        - {{ .Values.ingress.host | quote }}
+      secretName: {{ .Values.ingress.tls.secretName | quote }}
+  {{- end }}
+  rules:
+    - host: {{ .Values.ingress.host | quote }}
+      http:
+        paths:
+          - path: {{ printf "%s(/|$)(.*)" .Values.ingress.backendPath }}
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: {{ include "user-mgmt.backend.name" . }}
+                port:
+                  number: {{ .Values.backend.service.port }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "user-mgmt.frontend.name" . }}
+  labels:
+    {{- include "user-mgmt.frontend.labels" . | nindent 4 }}
+  annotations:
+    {{- if .Values.certManager.clusterIssuer.enabled }}
+    cert-manager.io/cluster-issuer: {{ .Values.certManager.clusterIssuer.name | quote }}
+    {{- end }}
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  {{- if .Values.ingress.tls.enabled }}
+  tls:
+    - hosts:
+        - {{ .Values.ingress.host | quote }}
+      secretName: {{ .Values.ingress.tls.secretName | quote }}
+  {{- end }}
+  rules:
+    - host: {{ .Values.ingress.host | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "user-mgmt.frontend.name" . }}
+                port:
+                  number: {{ .Values.frontend.service.port }}
+{{- end }}
