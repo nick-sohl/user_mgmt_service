@@ -16,9 +16,19 @@ spec:
     spec:
       containers:
       - name: backend
-        image: nicksohl/user-management-service:latest
+        image: nicksohl/user-management-service:v0.1.0
         ports:
         - containerPort: 8080
+        readinessProbe:
+          tcpSocket:
+            port: 8080
+          initialDelaySeconds: 20
+          periodSeconds: 5
+        livenessProbe:
+          tcpSocket:
+            port: 8080
+          initialDelaySeconds: 90
+          periodSeconds: 20
         env:
         - name: SPRING_DATASOURCE_USERNAME
           valueFrom:
