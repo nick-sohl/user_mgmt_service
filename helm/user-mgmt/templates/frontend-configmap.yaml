@@ -1,8 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: {{ include "user-mgmt.frontend.name" . }}
-  labels:
-    {{- include "user-mgmt.frontend.labels" . | nindent 4 }}
-data:
-  next-public-api-url: {{ .Values.frontend.config.nextPublicApiUrl | quote }}
