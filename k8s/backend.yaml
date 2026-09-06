@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-deployment
+  labels:
+    app: backend
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+      - name: backend
+        image: nicksohl/user-management-service:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: SPRING_DATASOURCE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: postgres-user
+        - name: SPRING_DATASOURCE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: postgres-password
+        - name: SPRING_DATASOURCE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: postgres-config
+              key: postgres-url
+        - name: BACKEND_URL
+          valueFrom:
+            configMapKeyRef:
+              name: backend-config
+              key: backend-url
+        - name: SPRING_JPA_HIBERNATE_DDL_AUTO
+          valueFrom:
+            configMapKeyRef:
+              name: backend-config
+              key: spring-jpa-hibernate-ddl-auto
+        - name: JWT_ISSUER
+          valueFrom:
+            configMapKeyRef:
+              name: backend-config
+              key: jwt-issuer
+        - name: JWT_EXPIRATION_MILLIS
+          valueFrom:
+            configMapKeyRef:
+              name: backend-config
+              key: jwt-expiration-millis
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: backend-secret
+              key: jwt-secret
+        - name: LETSENCRYPT_EMAIL
+          valueFrom:
+            secretKeyRef:
+              name: backend-secret
+              key: letsencrypt-email
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+spec:
+  type: ClusterIP
+  selector:
+    app: backend
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080

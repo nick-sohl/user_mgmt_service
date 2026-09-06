@@ -26,3 +26,6 @@ frontend/.next/
 frontend/out/
 frontend/*.tsbuildinfo
 frontend/next-env.d.ts
+
+# K8s
+user-mgmt-kubeconfig.yaml
