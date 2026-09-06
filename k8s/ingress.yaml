@@ -1,7 +1,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: user-mgmt-ingress
+  name: backend-ingress
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
     nginx.ingress.kubernetes.io/use-regex: "true"
@@ -23,6 +23,23 @@ spec:
                 name: backend-service
                 port:
                   number: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: frontend-ingress
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - user-mgmt-service.duckdns.org
+      secretName: user-mgmt-tls
+  rules:
+    - host: user-mgmt-service.duckdns.org
+      http:
+        paths:
           - path: /
             pathType: Prefix
             backend:
